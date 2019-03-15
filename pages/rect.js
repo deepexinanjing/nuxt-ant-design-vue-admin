@@ -1,11 +1,10 @@
 import Konva from 'konva'
 import uuidv1 from 'uuid/v1'
-export default class Circle {
-  circleList = []
+export default class Rect {
+  rectList = []
 
   draggable = false
   isDragging = false
-  scaleBy = 1.05
 
   constructor({ stage, circleFill, strokeColor, strokeWidth }) {
     Object.assign(this, { ...stage, circleFill, strokeColor, strokeWidth })
@@ -29,17 +28,10 @@ export default class Circle {
       if (this.isDragging) {
         const { layerX, layerY } = e.evt
         const scale = Math.abs(layerX - this.initLayerX)
-        const scaleNow = this.stage.scaleX()
-        console.log((layerX + this.initLayerX) / (2 * scaleNow), this.stage.x())
-        console.log(scaleNow)
         this.circle.setAttrs({
-          radius: scale / (2 * scaleNow),
-          x:
-            (layerX + this.initLayerX) / (2 * scaleNow) -
-            this.stage.x() / scaleNow,
-          y:
-            (layerY + this.initLayerY) / (2 * scaleNow) -
-            this.stage.y() / scaleNow,
+          radius: scale / 2,
+          x: (layerX + this.initLayerX) / 2 - this.lastPos.x,
+          y: (layerY + this.initLayerY) / 2 - this.lastPos.y,
           strokeWidth: this.strokeWidth
         })
         this.layer.draw()
@@ -83,44 +75,19 @@ export default class Circle {
     })
     this.stage.on('wheel', e => {
       // 滚轮放大缩小画布
-      // const wheel = e.evt.wheelDeltaY
-      // let nowScale
-      // if (wheel === 120) {
-      //   // 向上变大
-      //   nowScale = this.stage.scale().x * 0.8
-      // } else {
-      //   // 向下变小
-      //   nowScale = this.stage.scale().x * 1.2
-      // }
-      // this.stage.scale({
-      //   x: nowScale,
-      //   y: nowScale
-      // })
-      e.evt.preventDefault()
-      const oldScale = this.stage.scaleX()
-
-      const mousePointTo = {
-        x:
-          this.stage.getPointerPosition().x / oldScale -
-          this.stage.x() / oldScale,
-        y:
-          this.stage.getPointerPosition().y / oldScale -
-          this.stage.y() / oldScale
+      const wheel = e.evt.wheelDeltaY
+      let nowScale
+      if (wheel === 120) {
+        // 向上变大
+        nowScale = this.layer.scale().x * 0.8
+      } else {
+        // 向下变小
+        nowScale = this.layer.scale().x * 1.2
       }
-
-      const newScale =
-        e.evt.deltaY > 0 ? oldScale * this.scaleBy : oldScale / this.scaleBy
-      this.stage.scale({ x: newScale, y: newScale })
-
-      const newPos = {
-        x:
-          -(mousePointTo.x - this.stage.getPointerPosition().x / newScale) *
-          newScale,
-        y:
-          -(mousePointTo.y - this.stage.getPointerPosition().y / newScale) *
-          newScale
-      }
-      this.stage.position(newPos)
+      this.layer.scale({
+        x: nowScale,
+        y: nowScale
+      })
       this.layer.draw()
     })
     window.addEventListener('keyup', this.listenKeyUp)
@@ -154,7 +121,7 @@ export default class Circle {
       x: 0,
       y: 0,
       radius: 0,
-      // fill: this.circleFill,
+      fill: this.circleFill,
       stroke: this.strokeColor,
       strokeWidth: 0,
       name: 'circle',
